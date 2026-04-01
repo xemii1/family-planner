@@ -1,12 +1,26 @@
 {
   "name": "family-planner",
   "version": "1.0.0",
-  "description": "",
+  "private": true,
   "license": "ISC",
-  "author": "",
-  "type": "commonjs",
-  "main": "index.js",
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
+  "packageManager": "pnpm@9.0.0",
   "scripts": {
+    "dev:mobile": "pnpm --filter @app/mobile dev",
+    "dev:server": "pnpm --filter @app/server dev",
+    "dev": "pnpm run dev:mobile & pnpm run dev:server",
+    "build": "pnpm run build:packages && pnpm run build:server && pnpm run build:mobile",
+    "build:packages": "pnpm --filter @repo/* build",
+    "build:server": "pnpm --filter @app/server build",
+    "build:mobile": "pnpm --filter @app/mobile build",
+    "lint": "pnpm -r lint",
+    "typecheck": "pnpm -r typecheck",
     "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "devDependencies": {
+    "typescript": "^5.4.0"
   }
 }
