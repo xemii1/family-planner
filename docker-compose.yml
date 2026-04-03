@@ -1,0 +1,62 @@
+version: '3.8'
+
+services:
+  db:
+    image: postgres:15-alpine
+    container_name: family-planner-db
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: family_planner
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  server:
+    build:
+      context: .
+      dockerfile: server/Dockerfile
+    container_name: family-planner-server
+    restart: unless-stopped
+    environment:
+      NODE_ENV: development
+      DATABASE_URL: postgresql://postgres:postgres@db:5432/family_planner?schema=public
+      JWT_SECRET: your-super-secret-jwt-key-change-in-production
+      PORT: 3000
+      # Mail settings (example for dev, use real SMTP in prod)
+      MAIL_HOST: mailhog
+      MAIL_PORT: 1025
+      MAIL_FROM: noreply@familyplanner.local
+    ports:
+      - "3000:3000"
+    depends_on:
+      db:
+        condition: service_healthy
+    command: sh -c "npx prisma migrate deploy && npm run start:dev"
+    volumes:
+      - ./server:/app/server
+      - ./packages:/app/packages
+      - /app/server/node_modules
+      - /app/packages/types/node_modules
+      - /app/packages/utils/node_modules
+
+  # Optional: MailHog for catching emails in development
+  mailhog:
+    image: mailhog/mailhog:latest
+    container_name: family-planner-mailhog
+    restart: unless-stopped
+    ports:
+      - "1025:1025" # SMTP port
+      - "8025:8025" # Web UI port
+    profiles:
+      - mail
+
+volumes:
+  postgres_data:
