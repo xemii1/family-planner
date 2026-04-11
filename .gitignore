@@ -4,6 +4,7 @@ node_modules/
 .pnpm-store/
 .yarn/
 .yarn-cache/
+.npmrc
 
 # Build outputs
 dist/
